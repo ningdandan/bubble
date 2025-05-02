@@ -10,6 +10,13 @@ struct Dream: Identifiable, Codable, Equatable {
     var images: [DreamImage] = []
     var actions: [Action] = []
     var isArchived: Bool = false  // ✅ 新增字段，默认未归档
+    var description: Description? = nil  // 添加可选的 description 字段
+}
+
+struct Description: Identifiable, Codable, Equatable {
+    var id: UUID = UUID()
+    var content: String
+    var createdDate: Date = Date()
 }
 
 struct DreamImage: Identifiable, Codable, Equatable {
