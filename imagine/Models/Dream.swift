@@ -20,6 +20,13 @@ struct DreamImage: Identifiable, Codable, Equatable {
 struct Action: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var content: String
-    let createdDate: Date = Date()
-    var isFinished: Bool = false
+    var createdDate: Date = Date()
+//    var isFinished: Bool = false
+    
+    init(id: UUID = UUID(), content: String, createdDate: Date = Date()) {
+            self.id = id
+            self.content = content
+            self.createdDate = createdDate
+//            self.isFinished = isFinished
+        }
 }

@@ -3,17 +3,17 @@ import SwiftUI
 
 struct TodoItemView: View {
     let action: Action
-    let onToggle: () -> Void
+//    let onToggle: () -> Void
 
     var body: some View {
         HStack {
-            Button(action: onToggle) {
-                Image(systemName: action.isFinished ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(action.isFinished ? .green : .gray)
-            }
+//            Button(action: onToggle) {
+//                Image(systemName: action.isFinished ? "checkmark.circle.fill" : "circle")
+//                    .foregroundColor(action.isFinished ? .green : .gray)
+//            }
             Text(action.content)
                 .subtitleFont()
-                .strikethrough(action.isFinished)
+//                .strikethrough(action.isFinished)
             Spacer()
             Text(dateString(from: action.createdDate))
                 .labelFont()
@@ -39,12 +39,11 @@ struct TodoInputView: View {
         HStack(spacing: 8) {
             TextField("Add a task...", text: $text)
                 .titleFont()
-
+                .onSubmit {
+                            commitIfNeeded()
+                        }
             Button(action: {
-                if !text.isEmpty {
-                    onCommit(text)
-                    text = ""
-                }
+                commitIfNeeded()
             }) {
                 Image("send")
 //                    .foregroundColor(.gray)
@@ -53,5 +52,13 @@ struct TodoInputView: View {
         .padding(.horizontal)
        .padding(.vertical, 12)
 //        .background(Color.clear)
+    }
+    
+    private func commitIfNeeded() {
+        if !text.isEmpty {
+            print("📥 Commit: \(text)")
+            onCommit(text)
+            text = ""
+        }
     }
 }

@@ -6,7 +6,8 @@ class DreamBubbleScene: SKScene {
     var onTap: ((Dream) -> Void)?
 
     private var bubbleNodes: [UUID: SKShapeNode] = [:]
-
+    private let sharedTexture = SKTexture(imageNamed: "bubble")
+    
     override func didMove(to view: SKView) {
         backgroundColor = .clear
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
@@ -35,6 +36,8 @@ class DreamBubbleScene: SKScene {
 //            node.physicsBody?.applyForce(CGVector(dx: 10, dy: 3))
 //        }
     }
+    
+    
     private func setupWalls() {
         let thickness: CGFloat = 10
         let size = self.size
@@ -67,17 +70,20 @@ class DreamBubbleScene: SKScene {
 
     private func spawnBubbles() {
         for dream in dreams {
-            let radius = CGFloat(90 + min(dream.actions.count, 10) * 10) // twice size
+//            let radius = CGFloat(90 + min(dream.actions.count, 10) * 10) // twice size
+            
+            let minRadius: CGFloat = 70
+            let maxRadius: CGFloat = 110
+
+            // 用 actions 数量映射到 radius 区间，0个 → min，10个以上 → max
+            let actionCount = min(dream.actions.count, 5)
+            let radius = minRadius + (CGFloat(actionCount) / 2.0) * (maxRadius - minRadius)
+            
             let node = SKShapeNode(circleOfRadius: radius)
-//            node.fillColor = UIColor(DreamStyleColors.color(for: dream.styling))
-//            node.strokeColor = .clear
-            if let textureImage = UIImage(named: "bubble") {
-                print("✅ bubble image loaded")
-                node.fillTexture = SKTexture(image: textureImage)
-                node.fillColor = .white
-            } else {
-                print("❌ failed to load bubble image")
-            }
+
+            node.fillTexture = sharedTexture
+            node.fillColor = .white
+            
             node.name = dream.id.uuidString
 
             node.position = CGPoint(
@@ -86,15 +92,17 @@ class DreamBubbleScene: SKScene {
             )
 
             let body = SKPhysicsBody(circleOfRadius: radius)
-            body.restitution = 0.8
-            body.linearDamping = 0.15 // ✅ 减少阻力
-            body.friction = 0.0
-            body.allowsRotation = false
-            body.mass = 1.0
+            body.restitution = 0.6         // 弹性低一点，避免疯狂反弹
+            body.linearDamping = 0.05      // 更慢减速，漂浮感更强
+            body.friction = 0.0            // 保持表面无摩擦
+            body.allowsRotation = false    // 泡泡通常不旋转
+            body.mass = 0.1                // 🌟 改小质量！更轻盈
 
             // Add gentle current-like force
-            body.applyForce(CGVector(dx: CGFloat.random(in: 10...20), dy: CGFloat.random(in: 0...5)))
-
+            let dx = CGFloat.random(in: -100...100)  // 可以左右随机方向
+            let dy = CGFloat.random(in: -30...30)
+            body.applyForce(CGVector(dx: dx, dy: dy))
+            
             node.physicsBody = body
             
             // ✅ 加名字 label
@@ -112,6 +120,13 @@ class DreamBubbleScene: SKScene {
             addChild(node)
 
             bubbleNodes[dream.id] = node
+        }
+    }
+    func applyShakeForce() {
+        for node in bubbleNodes.values {
+            let dx = CGFloat.random(in: -60...60)
+            let dy = CGFloat.random(in: -40...40)
+            node.physicsBody?.applyImpulse(CGVector(dx: dx, dy: dy))
         }
     }
 
@@ -139,7 +154,11 @@ class DreamBubbleScene: SKScene {
 
                 if distance < impactRadius {
                     let multiplier: CGFloat = (impactRadius - distance) / impactRadius
-                    let forceVector = CGVector(dx: dx * 5 * multiplier, dy: dy * 5 * multiplier)
+                    let magnitude: CGFloat = 1000
+                    let angle = atan2(dy, dx)
+                    let forceVector = CGVector(dx: cos(angle) * magnitude, dy: sin(angle) * magnitude)
+                    
+//                    let forceVector = CGVector(dx: dx * 30 * multiplier, dy: dy * 30 * multiplier)
                     node.physicsBody?.applyForce(forceVector)
                 }
             }
@@ -147,33 +166,80 @@ class DreamBubbleScene: SKScene {
     }
 }
 
+class ShakeDetectingController: UIViewController {
+    var scene: DreamBubbleScene?
+
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        if motion == .motionShake {
+            print("🌀 Device shaken!")
+            scene?.applyShakeForce()
+        }
+    }
+}
 
 
-struct DreamPhysicsView: UIViewRepresentable {
+
+//struct DreamPhysicsView: UIViewRepresentable {
+//    let dreams: [Dream]
+//    let containerSize: CGSize
+//    var onDreamTap: (Dream) -> Void
+//
+//    func makeUIView(context: Context) -> SKView {
+//        let view = SKView()
+//        let scene = DreamBubbleScene()
+//        scene.size = containerSize // ✅ 确保尺寸来自外部传入
+//        scene.scaleMode = .resizeFill
+//        scene.dreams = dreams
+//        scene.onTap = onDreamTap
+//        DispatchQueue.main.async {
+//            view.presentScene(scene)
+//        }
+////        view.presentScene(scene)
+//        view.backgroundColor = .clear
+//        view.allowsTransparency = true
+//        return view
+//    }
+//
+//    func updateUIView(_ uiView: SKView, context: Context) {
+//        if let scene = uiView.scene as? DreamBubbleScene {
+//            scene.dreams = dreams
+//        }
+//    }
+//}
+
+
+struct DreamPhysicsView: UIViewControllerRepresentable {
     let dreams: [Dream]
     let containerSize: CGSize
     var onDreamTap: (Dream) -> Void
 
-    func makeUIView(context: Context) -> SKView {
-        let view = SKView()
+    func makeUIViewController(context: Context) -> ShakeDetectingController {
+        let controller = ShakeDetectingController()
+        let skView = SKView()
+        skView.backgroundColor = .clear
+        skView.allowsTransparency = true
+
         let scene = DreamBubbleScene()
-        scene.size = containerSize // ✅ 确保尺寸来自外部传入
+        scene.size = containerSize
         scene.scaleMode = .resizeFill
         scene.dreams = dreams
         scene.onTap = onDreamTap
+
+        controller.view = skView
+        controller.scene = scene
+
         DispatchQueue.main.async {
-            view.presentScene(scene)
+            skView.presentScene(scene)
         }
-//        view.presentScene(scene)
-        view.backgroundColor = .clear
-        view.allowsTransparency = true
-        return view
+
+        return controller
     }
 
-    func updateUIView(_ uiView: SKView, context: Context) {
-        if let scene = uiView.scene as? DreamBubbleScene {
+    func updateUIViewController(_ controller: ShakeDetectingController, context: Context) {
+        if let scene = (controller.view as? SKView)?.scene as? DreamBubbleScene {
             scene.dreams = dreams
         }
     }
 }
+
 

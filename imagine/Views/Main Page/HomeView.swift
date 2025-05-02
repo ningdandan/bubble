@@ -5,11 +5,13 @@ struct HomeView: View {
     @State private var showingEditor = false
     @State private var selectedDream: Dream? = nil
     @State private var animationTrigger = UUID()
+    
+    // 添加一个状态变量来保存 DreamDetailViewModel
+    @State private var detailViewModel: DreamDetailViewModel? = nil
 
     
     var body: some View {
-        
-        
+    
         GeometryReader { geo in
             ZStack {
                 
@@ -29,9 +31,18 @@ struct HomeView: View {
                             Spacer()
                             
                             NavigationLink(
-                                destination: selectedDream.map {
-                                    DreamDetailView(
-                                        viewModel: DreamDetailViewModel(dream: $0),
+                                destination: selectedDream.map { dream in
+                                    // 使用或创建 detailViewModel
+                                    let vm = detailViewModel ?? DreamDetailViewModel(dream: dream)
+                                    // 确保 detailViewModel 已设置
+                                    if detailViewModel == nil {
+                                        DispatchQueue.main.async {
+                                            detailViewModel = vm
+                                        }
+                                    }
+                                    
+                                    return DreamDetailView(
+                                        viewModel: vm,
                                         onDreamUpdate: { updated in
                                             viewModel.updateDream(updated)
                                         }
@@ -39,7 +50,11 @@ struct HomeView: View {
                                 },
                                 isActive: Binding(
                                     get: { selectedDream != nil },
-                                    set: { if !$0 { selectedDream = nil } }
+                                    set: { if !$0 { 
+                                        selectedDream = nil
+                                        // 当导航返回时清空 detailViewModel
+                                        detailViewModel = nil 
+                                    }}
                                 )
                             ) {
                                 EmptyView()
@@ -51,9 +66,9 @@ struct HomeView: View {
                                 Button(action: {
                                     showingEditor = true
                                 }) {
-                                    Image("net-button")
+                                    Image("net-button-1")
                                         .resizable()
-                                        .frame(width: 200, height: 200) // 根据实际大小调整
+                                        .frame(width: 300, height: 280) // 根据实际大小调整
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .padding(.bottom, -20) // 调整距离底部的间距
@@ -101,10 +116,10 @@ struct HomeView: View {
                             .transition(.scale.combined(with: .opacity))
                             .zIndex(1)
                         }
-            }.animation(.easeInOut(duration: 0.65), value: showingEditor)
-        }.onAppear {
-            viewModel.loadDreams()
+            }
+            .animation(.easeInOut(duration: 0.45), value: showingEditor)
         }
+        .onAppear {viewModel.loadDreams()}
         
 
     }

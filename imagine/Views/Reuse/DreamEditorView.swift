@@ -27,9 +27,9 @@ struct DreamEditorView: View {
                     prompt: Text("Due Date").font(.custom(FontName.martianMonoLight, size: 11))
                 )
                     .disabled(true)
-                    .font(.custom(FontName.martianMonoLight, size: 14))
+                    .font(.custom(FontName.martianMonoLight, size: 11))
 
-                Image(systemName: "calendar")
+                Image("calendar")
                     .foregroundColor(.gray)
             }
             .onTapGesture {
@@ -40,7 +40,9 @@ struct DreamEditorView: View {
 
             
             ImageGridView(images: $viewModel.images)
-                .padding(.horizontal).padding(.vertical, 16)
+                .frame(maxWidth: .infinity)
+                    .padding(.horizontal)
+                    .padding(.vertical, 16)
 
             if viewModel.images.isEmpty {
                 PhotosPicker(
@@ -87,6 +89,9 @@ struct DreamEditorView: View {
                 }
             .buttonStyle(PlainButtonStyle()) // 去除默认背景样式
         }
+        .onTapGesture {
+                UIApplication.shared.endEditing()
+            }
         .sheet(isPresented: $showDatePicker) {
             VStack {
                 DatePicker("Select Due Date", selection: $viewModel.dueDate, displayedComponents: .date)
