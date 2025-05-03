@@ -159,7 +159,7 @@ struct DreamDetailView: View {
                         showingEditor = false
                     }
                 )
-                .transition(.scale.combined(with: .opacity))
+                .transition(.opacity)
                 .zIndex(10)
             }
             
@@ -175,12 +175,12 @@ struct DreamDetailView: View {
                     content: $descriptionContent,
                     showError: $showDescriptionError
                 )
-                .transition(.scale.combined(with: .opacity))
+                .transition(.opacity)
                 .zIndex(10)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: showingDescriptionEditor)
-        .animation(.easeInOut(duration: 0.3), value: showingEditor)
+        .animation(.interpolatingSpring(stiffness: 70, damping: 20).speed(0.7), value: showingDescriptionEditor)
+        .animation(.interpolatingSpring(stiffness: 70, damping: 20).speed(0.7), value: showingEditor)
     }
     
     // 更新描述内容的方法

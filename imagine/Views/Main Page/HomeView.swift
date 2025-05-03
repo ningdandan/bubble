@@ -61,18 +61,38 @@ struct HomeView: View {
                             }
                             .hidden()
                             
+
+                            
                             VStack {
                                 Spacer()
-                                Button(action: {
+                                
+                                // 替换原来的静态按钮为动态气泡按钮
+                                BubbleButtonView(onBubbleExploded: {
                                     showingEditor = true
-                                }) {
-                                    Image("net-button-1")
-                                        .resizable()
-                                        .frame(width: 300, height: 280) // 根据实际大小调整
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .padding(.bottom, -20) // 调整距离底部的间距
-                            }.ignoresSafeArea(edges: .bottom)
+                                })
+                                .frame(maxWidth: .infinity, maxHeight: .infinity) // 一定要有 Frame！
+                                .allowsHitTesting(true) // 不要禁用
+                                .padding(.bottom, 40)
+                                .zIndex(1) // 保证视图可以接收触摸事件，但不会阻止下层视图
+                                
+//                                BubbleButtonView(onBubbleExploded: {
+//                                    showingEditor = true
+//                                })
+//                                .frame(width: geo.size.width, height: geo.size.height)
+//                                .contentShape(Circle()) // 限制为圆形点击区域
+//                                .allowsHitTesting(false) // 默认不响应事件
+//                                .overlay(
+//                                    Circle()
+//                                        .fill(Color.clear)
+//                                        .frame(width: 120, height: 120)
+//                                        .contentShape(Circle())
+//                                        .onTapGesture {
+//                                            showingEditor = true
+//                                        }
+//                                        .allowsHitTesting(true)
+//                                )
+                            }
+                            .ignoresSafeArea(edges: .bottom)
                             
                             //                            .padding(.bottom, 40) // ✅ 可手动加 padding 调整回理想位置
                         }
@@ -113,11 +133,13 @@ struct HomeView: View {
                                     showingEditor = false
                                 }
                             )
-                            .transition(.scale.combined(with: .opacity))
-                            .zIndex(1)
+                            .transition(.opacity)
+                                .zIndex(1)
                         }
             }
-            .animation(.easeInOut(duration: 0.45), value: showingEditor)
+//            .animation(.easeInOut(duration: 0.45), value: showingEditor)
+            .transition(.opacity)
+            .animation(.interpolatingSpring(stiffness: 70, damping: 20).speed(0.7), value: showingEditor)
         }
         .onAppear {viewModel.loadDreams()}
         

@@ -44,7 +44,7 @@ class DreamBubbleScene: SKScene {
 
         let wallRects = [
             // bottom wall (y = 0)
-            CGRect(x: 0, y: 0, width: size.width, height: thickness),
+            CGRect(x: 0, y: 200, width: size.width, height: thickness),
 
             // top wall (y = maxY)
             CGRect(x: 0, y: size.height - 10*thickness, width: size.width, height: thickness),
@@ -241,5 +241,7 @@ struct DreamPhysicsView: UIViewControllerRepresentable {
         }
     }
 }
+
+
 
 

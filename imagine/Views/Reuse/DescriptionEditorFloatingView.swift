@@ -10,9 +10,12 @@ struct DescriptionEditorFloatingView: View {
     var body: some View {
         ZStack {
             // 背景模糊层 - 确保全屏覆盖
-            Color.clear
-                .background(.ultraThinMaterial)
+            Color.black.opacity(0.001)
+//                .background(.ultraThinMaterial)
                 .ignoresSafeArea()
+                .onTapGesture {
+                            onDismiss()
+                        }
             
             // Modal 主体 - 限制高度和位置
             VStack {
@@ -28,14 +31,14 @@ struct DescriptionEditorFloatingView: View {
                             .padding(10)
                             .scrollContentBackground(.hidden) // iOS 16+ 可用
                             .background(Color.clear) // 设置透明背景
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(
-                                        Color.gray.opacity(0.4),
-                                        style: StrokeStyle(lineWidth: 1, dash: [3])
-                                    )
-                            )
-                            .background(Color.gray.opacity(0.1))
+//                            .overlay(
+//                                RoundedRectangle(cornerRadius: 8)
+//                                    .stroke(
+//                                        Color.gray.opacity(0.4),
+//                                        style: StrokeStyle(lineWidth: 1, dash: [3])
+//                                    )
+//                            )
+//                            .background(Color.gray.opacity(0.1))
                         
                         if showError {
                             Text("Description cannot be empty")
@@ -56,34 +59,42 @@ struct DescriptionEditorFloatingView: View {
                     .buttonStyle(PlainButtonStyle())
                     .opacity(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1)
                 }
+                
                 .padding(18) // 减小内边距
             }
+            .frame(maxWidth: 370)
             .padding(16) // 减小外边距
             .background(
                 ZStack {
-                    Image("bg")
+                    Circle()
+                                .fill(Color(hex: "#FFF9E5")) // 米色背景
+                                .frame(width: 600, height: 600)
+                    Image("bubble") // 用你自己的背景图替代 ultraThinMaterial
                         .resizable()
                         .scaledToFill()
                         .clipped()
                 }
             )
-            .cornerRadius(24)
+            .frame(width: 670, height: 670) // 让它成为正圆
+            .clipShape(Circle())
+            .cornerRadius(32)
             .shadow(
-                color: Color(hex: "#FFF9E5").opacity(0.4),
-                radius: 20,
+                color: Color(hex: "#FFF9E5").opacity(0.45),
+                radius: 24,
                 x: 0,
                 y: 4
             )
-            .frame(maxWidth: 320, maxHeight: 320) // 限制整体尺寸
-            .overlay(
-                Button(action: onDismiss) {
-                    Image("exit")
-                        .resizable()
-                        .frame(width: 20, height: 20) // 减小退出按钮尺寸
-                }
-                .padding(8),
-                alignment: .topTrailing
-            )
+            .frame(maxWidth: 360)
+
+//            .overlay(
+//                Button(action: onDismiss) {
+//                    Image("exit")
+//                        .resizable()
+//                        .frame(width: 20, height: 20) // 减小退出按钮尺寸
+//                }
+//                .padding(8),
+//                alignment: .topTrailing
+//            )
             .position(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2 - 50) // 向上调整位置
         }
         .onAppear {
